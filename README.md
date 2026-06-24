@@ -1,126 +1,138 @@
-GenRoute GA - Otimização de Rotas com Algoritmo Genético em Java
-Sobre o projeto
+# GenRoute GA - Otimizacao de Rotas com Algoritmo Genetico em Java
 
-O GenRoute GA é um projeto acadêmico desenvolvido em Java para aplicar Algoritmos Genéticos na resolução de um problema clássico de otimização combinatória: o Problema do Caixeiro Viajante.
+Projeto academico em Java que aplica Algoritmo Genetico ao Problema do Caixeiro Viajante. A aplicacao encontra uma rota curta que visita todos os pontos de um problema e retorna ao ponto inicial, simulando cenarios de entregas, transporte, coleta, atendimento tecnico e planejamento de visitas.
 
-O objetivo é encontrar uma rota de menor distância que visite todos os pontos definidos e retorne ao ponto inicial, simulando situações reais como logística, entregas, transporte e planejamento de rotas.
+## Tema
 
-Tema
+Aplicacao de Algoritmo Genetico na otimizacao de rotas: uma abordagem computacional para o Problema do Caixeiro Viajante.
 
-Aplicação de Algoritmo Genético na Otimização de Rotas: uma abordagem computacional para o Problema do Caixeiro Viajante.
+## Como a solucao e representada
 
-Problema trabalhado
-
-O problema consiste em definir a melhor ordem de visita entre vários pontos, buscando minimizar a distância total percorrida.
-
-Esse tipo de problema aparece em situações como:
-
-rotas de entrega;
-transporte urbano;
-coleta de materiais;
-logística empresarial;
-atendimento técnico em campo;
-planejamento de visitas.
-Por que usar Algoritmo Genético?
-
-O número de rotas possíveis cresce rapidamente conforme a quantidade de pontos aumenta. Por isso, testar todas as combinações possíveis se torna inviável.
-
-O Algoritmo Genético busca boas soluções por meio de um processo inspirado na evolução natural, utilizando:
-
-população inicial;
-função de aptidão;
-seleção;
-cruzamento;
-mutação;
-elitismo.
-Modelagem matemática
-
-Dado um conjunto de pontos:
-
-V = {1, 2, 3, ..., n}
-
-Cada ponto possui coordenadas:
-
-(x, y)
-
-A distância entre dois pontos é calculada pela distância euclidiana:
-
-d(i,j) = sqrt((xi - xj)² + (yi - yj)²)
-
-O objetivo é minimizar a distância total da rota:
-
-Minimizar Z = soma das distâncias entre pontos consecutivos + retorno ao ponto inicial
-Como o algoritmo representa uma solução?
-
-Cada indivíduo da população representa uma rota possível.
+Cada individuo da populacao representa uma rota possivel. O ponto `0` e mantido como ponto inicial para facilitar a leitura no seminario.
 
 Exemplo:
 
+```text
 [0, 3, 5, 2, 1, 4]
+```
 
-Essa rota representa a sequência:
+Essa rota significa:
 
-Ponto 0 → Ponto 3 → Ponto 5 → Ponto 2 → Ponto 1 → Ponto 4 → Retorno ao início
-Tecnologias utilizadas
-Java
-Maven
-JavaFX
-VS Code
-Git/GitHub
-Estrutura do projeto
+```text
+Ponto 0 -> Ponto 3 -> Ponto 5 -> Ponto 2 -> Ponto 1 -> Ponto 4 -> retorno ao Ponto 0
+```
+
+## Modelagem matematica
+
+Dado um conjunto de pontos:
+
+```text
+V = {1, 2, 3, ..., n}
+```
+
+Cada ponto possui coordenadas `(x, y)`.
+
+A distancia entre dois pontos e calculada pela distancia euclidiana:
+
+```text
+d(i,j) = sqrt((xi - xj)^2 + (yi - yj)^2)
+```
+
+O objetivo e minimizar a distancia total da rota:
+
+```text
+Minimizar Z = soma das distancias entre pontos consecutivos + retorno ao ponto inicial
+```
+
+## O que o projeto mostra
+
+- Rota inicial gerada aleatoriamente.
+- Melhor rota encontrada pelo Algoritmo Genetico.
+- Distancia inicial.
+- Distancia final.
+- Percentual de melhoria.
+- Grafico animado da evolucao da distancia ao longo das geracoes.
+- Comparacao visual entre rota inicial e rota otimizada.
+
+## Estrutura
+
+```text
 genroute-ga-java/
-│
-├── pom.xml
-├── README.md
-├── data/
-│   └── cidades_30.csv
-│
-└── src/
-    └── main/
-        └── java/
-            └── br/
-                └── com/
-                    └── genroute/
-                        ├── App.java
-                        ├── model/
-                        │   ├── City.java
-                        │   └── Route.java
-                        └── ga/
-                            ├── GeneticAlgorithm.java
-                            └── GeneticResult.java
-Visualizações esperadas
+|-- pom.xml
+|-- README.md
+|-- data/
+|   `-- problemas/
+|       |-- cidades_10.csv
+|       |-- cidades_20.csv
+|       `-- cidades_30.csv
+`-- src/
+    `-- main/
+        |-- java/
+        |   `-- br/
+        |       `-- com/
+        |           `-- genroute/
+        |               |-- App.java
+        |               |-- ga/
+        |               |   |-- GeneticAlgorithm.java
+        |               |   |-- GeneticParameters.java
+        |               |   `-- GeneticResult.java
+        |               |-- io/
+        |               |   `-- ProblemRepository.java
+        |               |-- model/
+        |               |   |-- City.java
+        |               |   |-- ProblemInstance.java
+        |               |   `-- Route.java
+        |               `-- visual/
+        |                   `-- RouteCanvas.java
+        `-- resources/
+            `-- styles/
+                `-- app.css
+```
 
-O projeto pretende apresentar visualmente:
+## Como cadastrar novos problemas
 
-rota inicial gerada aleatoriamente;
-melhor rota encontrada pelo Algoritmo Genético;
-distância inicial;
-distância final;
-percentual de melhoria;
-gráfico de evolução da distância ao longo das gerações.
-Exemplo de resultado esperado
-Distância inicial: 850.42
-Distância final: 374.18
-Melhoria: 56.00%
-Como executar o projeto
+Crie um arquivo `.csv` dentro de `data/problemas`.
 
-Clone o repositório:
+Formato:
 
-git clone https://github.com/seu-usuario/genroute-ga-java.git
+```csv
+nome,x,y
+Deposito,20,30
+Cliente 1,80,42
+Cliente 2,55,90
+```
 
-Entre na pasta do projeto:
+A primeira cidade do arquivo sera o ponto inicial da rota.
 
-cd genroute-ga-java
+## Como executar
 
-Execute com Maven:
+Com Java e Maven instalados no sistema:
 
+```bash
 mvn javafx:run
-Objetivo acadêmico
+```
 
-Este projeto foi desenvolvido como parte de um seminário de Matemática Computacional, com foco em demonstrar uma aplicação prática de Algoritmos Genéticos em problemas de otimização combinatória.
+Tambem existe uma instalacao portatil para este projeto em `.tools/`, com JDK 21 e Maven. Nesse caso, execute pelo PowerShell:
 
-A proposta busca relacionar teoria, modelagem matemática, implementação computacional e visualização gráfica dos resultados.
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\run.ps1
+```
 
-Autor
+Para rodar qualquer comando Maven usando o Java portatil:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\mvn.ps1 -q -DskipTests package
+```
+
+Os scripts configuram `JAVA_HOME`, `MAVEN_HOME` e um repositorio Maven local em `.m2/repository`, tudo dentro do projeto.
+
+## Tecnologias
+
+- Java
+- Maven
+- JavaFX
+- Git/GitHub
+
+## Autor
 
 Iury Figueiredo Lopes

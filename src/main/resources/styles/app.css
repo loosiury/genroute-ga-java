@@ -1,0 +1,108 @@
+.app-root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-background-color: #eef2f7;
+}
+
+.header {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d8dee9;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 16 22 14 22;
+}
+
+.title {
+    -fx-font-size: 25px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #0f172a;
+}
+
+.subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #475569;
+}
+
+.controls-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: #d8dee9;
+    -fx-border-width: 0 1 0 0;
+}
+
+.controls-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.controls {
+    -fx-pref-width: 260px;
+    -fx-padding: 16px;
+    -fx-background-color: #ffffff;
+}
+
+.field-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #334155;
+}
+
+.status-label {
+    -fx-text-fill: #475569;
+    -fx-font-size: 12px;
+}
+
+.primary-button {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 800;
+}
+
+.button {
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-padding: 8 10 8 10;
+    -fx-cursor: hand;
+}
+
+.panel {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d8dee9;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 10px;
+}
+
+.evolution-chart {
+    -fx-background-color: transparent;
+}
+
+.chart-plot-background {
+    -fx-background-color: #f8fafc;
+}
+
+.chart-series-line {
+    -fx-stroke-width: 2.2px;
+}
+
+.default-color0.chart-series-line {
+    -fx-stroke: #2563eb;
+}
+
+.default-color1.chart-series-line {
+    -fx-stroke: #f97316;
+}
+
+.metrics {
+    -fx-padding: 0 16 16 16;
+}
+
+.metric-box {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d8dee9;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 10px 12px;
+}
+
+.metric-label {
+    -fx-text-fill: #0f172a;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
