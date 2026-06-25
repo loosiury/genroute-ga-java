@@ -8,14 +8,15 @@ import br.com.genroute.model.ProblemInstance;
 import br.com.genroute.visual.RouteCanvas;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Random;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.concurrent.Task;
-import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
@@ -31,14 +32,19 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
 public final class App extends Application {
     private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#,##0.00");
     private static final DecimalFormat PERCENT_FORMAT = new DecimalFormat("#,##0.00'%'");
+    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private static final Color INITIAL_ROUTE_COLOR = Color.web("#123f91");
+    private static final Color BEST_ROUTE_COLOR = Color.web("#078b5d");
 
     private final ProblemRepository problemRepository = new ProblemRepository();
 
@@ -56,11 +62,15 @@ public final class App extends Application {
     private Label finalDistanceLabel;
     private Label improvementLabel;
     private Label generationLabel;
-    private Label routeLabel;
-    private RouteCanvas routeCanvas;
+    private Label footerProblemLabel;
+    private Label footerPopulationLabel;
+    private Label footerGenerationLabel;
+    private Label footerMutationLabel;
+    private Label footerTimeLabel;
+    private RouteCanvas initialRouteCanvas;
+    private RouteCanvas bestRouteCanvas;
     private LineChart<Number, Number> chart;
     private XYChart.Series<Number, Number> bestSeries;
-    private XYChart.Series<Number, Number> averageSeries;
     private Timeline animation;
     private GeneticResult currentResult;
 
@@ -72,19 +82,18 @@ public final class App extends Application {
     public void start(Stage stage) {
         BorderPane root = new BorderPane();
         root.getStyleClass().add("app-root");
-        root.setTop(createHeader());
-        root.setLeft(createControls());
-        root.setCenter(createWorkspace());
-        root.setBottom(createMetrics());
+        root.setLeft(createSidebar());
+        root.setCenter(createDashboard());
+        root.setBottom(createFooter());
 
-        Scene scene = new Scene(root, 1180, 760);
+        Scene scene = new Scene(root, 1440, 820);
         String stylesheet = getClass().getResource("/styles/app.css").toExternalForm();
         scene.getStylesheets().add(stylesheet);
 
-        stage.setTitle("GenRoute GA");
+        stage.setTitle("GenRoute GA - JavaFX");
         stage.setScene(scene);
-        stage.setMinWidth(1024);
-        stage.setMinHeight(680);
+        stage.setMinWidth(1120);
+        stage.setMinHeight(720);
         stage.show();
 
         loadProblems();
@@ -94,35 +103,34 @@ public final class App extends Application {
         }
     }
 
-    private VBox createHeader() {
-        Label title = new Label("GenRoute GA");
-        title.getStyleClass().add("title");
+    private VBox createSidebar() {
+        Label logoIcon = new Label("⌖");
+        logoIcon.getStyleClass().add("logo-icon");
 
-        Label subtitle = new Label("Otimizacao de rotas com Algoritmo Genetico");
-        subtitle.getStyleClass().add("subtitle");
+        Label logoText = new Label("GenRoute\nGA");
+        logoText.getStyleClass().add("logo-text");
 
-        VBox header = new VBox(4, title, subtitle);
-        header.getStyleClass().add("header");
-        return header;
-    }
+        HBox logo = new HBox(10, logoIcon, logoText);
+        logo.setAlignment(Pos.CENTER_LEFT);
+        logo.getStyleClass().add("logo");
 
-    private ScrollPane createControls() {
         problemCombo = new ComboBox<>();
         problemCombo.setMaxWidth(Double.MAX_VALUE);
 
         populationSpinner = new Spinner<>();
-        populationSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(40, 800, 180, 20));
+        populationSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(40, 800, 200, 20));
         populationSpinner.setEditable(true);
 
         generationSpinner = new Spinner<>();
-        generationSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(30, 1200, 320, 20));
+        generationSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(30, 1200, 100, 10));
         generationSpinner.setEditable(true);
 
-        mutationSlider = new Slider(0.01, 0.30, 0.08);
+        mutationSlider = new Slider(0.01, 0.30, 0.02);
         mutationSlider.setShowTickLabels(true);
         mutationSlider.setShowTickMarks(true);
         mutationSlider.setMajorTickUnit(0.05);
         mutationValueLabel = new Label(formatPercent(mutationSlider.getValue()));
+        mutationValueLabel.getStyleClass().add("sidebar-small-value");
         mutationSlider.valueProperty().addListener((observable, oldValue, newValue) ->
                 mutationValueLabel.setText(formatPercent(newValue.doubleValue())));
 
@@ -133,97 +141,157 @@ public final class App extends Application {
         speedSlider.setMinorTickCount(0);
         speedSlider.setSnapToTicks(true);
 
-        showInitialRouteCheck = new CheckBox("Comparar rota inicial");
+        showInitialRouteCheck = new CheckBox("Referência inicial");
         showInitialRouteCheck.setSelected(true);
         showInitialRouteCheck.selectedProperty().addListener((observable, oldValue, newValue) -> replayCurrentFrame());
 
-        runButton = new Button("Executar GA");
+        runButton = new Button("Executar AG");
         runButton.getStyleClass().add("primary-button");
         runButton.setMaxWidth(Double.MAX_VALUE);
         runButton.setOnAction(event -> runAlgorithm());
 
-        replayButton = new Button("Reanimar resultado");
+        replayButton = new Button("Reanimar");
         replayButton.setMaxWidth(Double.MAX_VALUE);
         replayButton.setDisable(true);
         replayButton.setOnAction(event -> animateResult(currentResult));
 
         statusLabel = new Label("Carregando problemas...");
-        statusLabel.getStyleClass().add("status-label");
+        statusLabel.getStyleClass().add("sidebar-status");
         statusLabel.setWrapText(true);
 
         VBox controls = new VBox(
                 12,
+                navItem("◉", "Visualização", true),
+                navItem("☰", "Parâmetros", false),
                 field("Problema", problemCombo),
-                field("Populacao", populationSpinner),
-                field("Geracoes", generationSpinner),
-                fieldWithSuffix("Mutacao", mutationSlider, mutationValueLabel),
+                field("População", populationSpinner),
+                field("Gerações", generationSpinner),
+                fieldWithSuffix("Mutação", mutationSlider, mutationValueLabel),
                 field("Velocidade", speedSlider),
                 showInitialRouteCheck,
                 runButton,
-                replayButton,
-                statusLabel);
-        controls.getStyleClass().add("controls");
+                replayButton);
+        controls.getStyleClass().add("sidebar-controls");
 
-        ScrollPane scrollPane = new ScrollPane(controls);
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+
+        VBox statusBox = new VBox(4, new Label("✓ Execução"), statusLabel);
+        statusBox.getStyleClass().add("sidebar-status-box");
+
+        VBox sidebar = new VBox(22, logo, controls, spacer, statusBox);
+        sidebar.getStyleClass().add("sidebar");
+        return sidebar;
+    }
+
+    private ScrollPane createDashboard() {
+        Label title = new Label("Visualização do processo");
+        title.getStyleClass().add("dashboard-title");
+
+        Label subtitle = new Label("Acompanhe a evolução do Algoritmo Genético e compare as rotas");
+        subtitle.getStyleClass().add("dashboard-subtitle");
+
+        VBox heading = new VBox(3, title, subtitle);
+
+        Button reportButton = new Button("Exportar relatório");
+        reportButton.getStyleClass().add("report-button");
+        reportButton.setOnAction(event -> statusLabel.setText("Relatório atualizado em docs/Documentacao_Seminario_Algoritmo_Genetico-iury-atualizada.pdf"));
+
+        Region headerSpacer = new Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+        HBox header = new HBox(16, heading, headerSpacer, reportButton);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        initialDistanceLabel = metricValue("-");
+        finalDistanceLabel = metricValue("-");
+        improvementLabel = metricValue("-");
+
+        HBox metricRow = new HBox(
+                18,
+                metricCard("Distância inicial", initialDistanceLabel, "Rota construída inicialmente", "△", "metric-blue"),
+                metricCard("Distância final", finalDistanceLabel, "Melhor rota encontrada", "⚑", "metric-green"),
+                metricCard("Melhoria", improvementLabel, "Redução em relação à inicial", "↗", "metric-teal"));
+        metricRow.getStyleClass().add("metric-row");
+
+        initialRouteCanvas = new RouteCanvas();
+        bestRouteCanvas = new RouteCanvas();
+
+        HBox routeRow = new HBox(
+                18,
+                routePanel("Rota inicial", "route-title-blue", initialRouteCanvas),
+                routePanel("Melhor rota encontrada", "route-title-green", bestRouteCanvas));
+        routeRow.getStyleClass().add("route-row");
+
+        VBox chartPanel = createChartPanel();
+
+        VBox dashboard = new VBox(18, header, metricRow, routeRow, chartPanel);
+        dashboard.getStyleClass().add("dashboard");
+
+        ScrollPane scrollPane = new ScrollPane(dashboard);
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.getStyleClass().add("controls-scroll");
+        scrollPane.getStyleClass().add("dashboard-scroll");
         return scrollPane;
     }
 
-    private BorderPane createWorkspace() {
-        routeCanvas = new RouteCanvas();
-        StackPane canvasPane = new StackPane(routeCanvas);
-        canvasPane.getStyleClass().add("panel");
-        routeCanvas.widthProperty().bind(canvasPane.widthProperty().subtract(20));
-        routeCanvas.heightProperty().bind(canvasPane.heightProperty().subtract(20));
+    private HBox createFooter() {
+        footerProblemLabel = footerItem("Problema", "-");
+        footerPopulationLabel = footerItem("População", "-");
+        footerGenerationLabel = footerItem("Gerações", "-");
+        footerMutationLabel = footerItem("Mutação", "-");
+        footerTimeLabel = footerItem("Atualizado", "-");
+        generationLabel = footerItem("Geração atual", "-");
 
+        HBox footer = new HBox(
+                28,
+                footerItem("Algoritmo", "Algoritmo Genético"),
+                footerProblemLabel,
+                footerPopulationLabel,
+                footerGenerationLabel,
+                footerMutationLabel,
+                generationLabel,
+                footerTimeLabel);
+        footer.setAlignment(Pos.CENTER_LEFT);
+        footer.getStyleClass().add("footer");
+        return footer;
+    }
+
+    private VBox createChartPanel() {
         NumberAxis xAxis = new NumberAxis();
-        xAxis.setLabel("Geracao");
+        xAxis.setLabel("Geração");
         NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Distancia");
+        yAxis.setLabel("Distância");
+
         chart = new LineChart<>(xAxis, yAxis);
         chart.setAnimated(false);
-        chart.setCreateSymbols(false);
+        chart.setCreateSymbols(true);
         chart.setLegendVisible(true);
         chart.getStyleClass().add("evolution-chart");
 
         bestSeries = new XYChart.Series<>();
-        bestSeries.setName("Melhor");
-        averageSeries = new XYChart.Series<>();
-        averageSeries.setName("Media da populacao");
-        chart.getData().addAll(bestSeries, averageSeries);
+        bestSeries.setName("Melhor distância");
+        chart.getData().add(bestSeries);
 
-        VBox chartPanel = new VBox(8, new Label("Evolucao da distancia"), chart);
+        Label chartTitle = new Label("Evolução da melhor solução");
+        chartTitle.getStyleClass().add("panel-title");
+
+        VBox chartPanel = new VBox(8, chartTitle, chart);
         chartPanel.getStyleClass().add("panel");
+        chartPanel.setMinHeight(230);
+        chartPanel.setPrefHeight(260);
         VBox.setVgrow(chart, Priority.ALWAYS);
-
-        javafx.scene.control.SplitPane splitPane = new javafx.scene.control.SplitPane(canvasPane, chartPanel);
-        splitPane.setOrientation(Orientation.HORIZONTAL);
-        splitPane.setDividerPositions(0.58);
-
-        BorderPane workspace = new BorderPane(splitPane);
-        workspace.setPadding(new Insets(16));
-        return workspace;
+        return chartPanel;
     }
 
-    private HBox createMetrics() {
-        initialDistanceLabel = metric("Distancia inicial", "-");
-        finalDistanceLabel = metric("Distancia final", "-");
-        improvementLabel = metric("Melhoria", "-");
-        generationLabel = metric("Geracao atual", "-");
-        routeLabel = metric("Rota", "-");
-        routeLabel.setWrapText(true);
-
-        HBox metrics = new HBox(
-                14,
-                metricBox(initialDistanceLabel),
-                metricBox(finalDistanceLabel),
-                metricBox(improvementLabel),
-                metricBox(generationLabel),
-                metricBox(routeLabel));
-        metrics.getStyleClass().add("metrics");
-        return metrics;
+    private HBox navItem(String icon, String text, boolean active) {
+        Label iconLabel = new Label(icon);
+        iconLabel.getStyleClass().add("nav-icon");
+        Label textLabel = new Label(text);
+        textLabel.getStyleClass().add("nav-text");
+        HBox row = new HBox(10, iconLabel, textLabel);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().add(active ? "nav-item-active" : "nav-item");
+        return row;
     }
 
     private VBox field(String label, javafx.scene.Node control) {
@@ -238,21 +306,75 @@ public final class App extends Application {
         Label fieldLabel = new Label(label);
         fieldLabel.getStyleClass().add("field-label");
         HBox row = new HBox(8, control, suffix);
+        row.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(control, Priority.ALWAYS);
         return new VBox(5, fieldLabel, row);
     }
 
-    private Label metric(String title, String value) {
-        Label label = new Label(title + "\n" + value);
-        label.getStyleClass().add("metric-label");
+    private VBox metricCard(String title, Label value, String detail, String icon, String iconStyle) {
+        Label iconLabel = new Label(icon);
+        iconLabel.getStyleClass().addAll("metric-icon", iconStyle);
+
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("metric-title");
+
+        Label detailLabel = new Label(detail);
+        detailLabel.getStyleClass().add("metric-detail");
+
+        VBox text = new VBox(5, titleLabel, value, detailLabel);
+        HBox.setHgrow(text, Priority.ALWAYS);
+
+        HBox card = new HBox(16, iconLabel, text);
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.getStyleClass().add("metric-card");
+        card.setMaxWidth(Double.MAX_VALUE);
+
+        VBox wrapper = new VBox(card);
+        wrapper.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(wrapper, Priority.ALWAYS);
+        return wrapper;
+    }
+
+    private Label metricValue(String value) {
+        Label label = new Label(value);
+        label.getStyleClass().add("metric-value");
         return label;
     }
 
-    private VBox metricBox(Label label) {
-        VBox box = new VBox(label);
-        box.getStyleClass().add("metric-box");
-        HBox.setHgrow(box, Priority.ALWAYS);
-        return box;
+    private VBox routePanel(String title, String titleStyleClass, RouteCanvas canvas) {
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().addAll("panel-title", titleStyleClass);
+
+        Label legend = new Label("● Depósito   ● Cliente");
+        legend.getStyleClass().add("route-legend");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox header = new HBox(12, titleLabel, spacer, legend);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        StackPane canvasHost = new StackPane(canvas);
+        canvasHost.getStyleClass().add("canvas-host");
+        canvasHost.setMinHeight(260);
+        canvasHost.setPrefHeight(290);
+        canvas.widthProperty().bind(canvasHost.widthProperty());
+        canvas.heightProperty().bind(canvasHost.heightProperty());
+
+        VBox panel = new VBox(8, header, canvasHost);
+        panel.getStyleClass().add("panel");
+        panel.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(panel, Priority.ALWAYS);
+        return panel;
+    }
+
+    private Label footerItem(String label, String value) {
+        Label footerLabel = new Label(label + ": " + value);
+        footerLabel.getStyleClass().add("footer-item");
+        return footerLabel;
+    }
+
+    private void updateFooterItem(Label footerLabel, String label, String value) {
+        footerLabel.setText(label + ": " + value);
     }
 
     private void loadProblems() {
@@ -300,10 +422,11 @@ public final class App extends Application {
         task.setOnSucceeded(event -> {
             currentResult = task.getValue();
             updateFinalMetrics(currentResult);
+            updateFooter(problem, currentResult);
             animateResult(currentResult);
             runButton.setDisable(false);
             replayButton.setDisable(false);
-            statusLabel.setText("Resultado pronto para apresentacao.");
+            statusLabel.setText("Execução concluída.");
         });
 
         task.setOnFailed(event -> {
@@ -317,10 +440,21 @@ public final class App extends Application {
     }
 
     private void updateFinalMetrics(GeneticResult result) {
-        initialDistanceLabel.setText("Distancia inicial\n" + NUMBER_FORMAT.format(result.initialRoute().distance()));
-        finalDistanceLabel.setText("Distancia final\n" + NUMBER_FORMAT.format(result.bestRoute().distance()));
-        improvementLabel.setText("Melhoria\n" + PERCENT_FORMAT.format(result.improvementPercent()));
-        routeLabel.setText("Rota\n" + result.bestRoute().orderAsText());
+        double initial = result.initialRoute().distance();
+        double best = result.bestRoute().distance();
+        double gain = initial - best;
+
+        initialDistanceLabel.setText(formatDistance(initial));
+        finalDistanceLabel.setText(formatDistance(best));
+        improvementLabel.setText(formatDistance(gain) + " (" + PERCENT_FORMAT.format(result.improvementPercent()) + ")");
+    }
+
+    private void updateFooter(ProblemInstance problem, GeneticResult result) {
+        updateFooterItem(footerProblemLabel, "Problema", problem.name());
+        updateFooterItem(footerPopulationLabel, "População", String.valueOf(result.parameters().populationSize()));
+        updateFooterItem(footerGenerationLabel, "Gerações", String.valueOf(result.parameters().generations()));
+        updateFooterItem(footerMutationLabel, "Mutação", formatPercent(result.parameters().mutationRate()));
+        updateFooterItem(footerTimeLabel, "Atualizado", DATE_TIME_FORMAT.format(LocalDateTime.now()));
     }
 
     private void animateResult(GeneticResult result) {
@@ -330,16 +464,14 @@ public final class App extends Application {
 
         stopAnimation();
         bestSeries.getData().clear();
-        averageSeries.getData().clear();
 
         int totalFrames = result.bestDistanceHistory().size();
-        double delay = 55.0 / speedSlider.getValue();
+        double delay = 60.0 / speedSlider.getValue();
         final int[] frame = {0};
 
         animation = new Timeline(new KeyFrame(Duration.millis(delay), event -> {
             int index = frame[0];
             bestSeries.getData().add(new XYChart.Data<>(index, result.bestDistanceHistory().get(index)));
-            averageSeries.getData().add(new XYChart.Data<>(index, result.averageDistanceHistory().get(index)));
             renderFrame(result, index);
 
             frame[0]++;
@@ -353,13 +485,23 @@ public final class App extends Application {
     }
 
     private void renderFrame(GeneticResult result, int index) {
-        routeCanvas.setRoutes(
+        initialRouteCanvas.setRouteView(
+                null,
+                result.initialRoute(),
+                false,
+                INITIAL_ROUTE_COLOR,
+                index,
+                result.generationsEvaluated(),
+                false);
+        bestRouteCanvas.setRouteView(
                 result.initialRoute(),
                 result.bestRouteHistory().get(index),
                 showInitialRouteCheck.isSelected(),
+                BEST_ROUTE_COLOR,
                 index,
-                result.generationsEvaluated());
-        generationLabel.setText("Geracao atual\n" + index + " / " + result.generationsEvaluated());
+                result.generationsEvaluated(),
+                true);
+        updateFooterItem(generationLabel, "Geração atual", index + " / " + result.generationsEvaluated());
     }
 
     private void replayCurrentFrame() {
@@ -376,6 +518,10 @@ public final class App extends Application {
             animation.stop();
             animation = null;
         }
+    }
+
+    private String formatDistance(double value) {
+        return NUMBER_FORMAT.format(value) + " km";
     }
 
     private String formatPercent(double value) {

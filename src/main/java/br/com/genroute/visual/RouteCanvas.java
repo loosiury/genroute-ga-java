@@ -9,32 +9,47 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.transform.Affine;
 
 public final class RouteCanvas extends Canvas {
-    private static final double PADDING = 46.0;
+    private static final double PADDING = 34.0;
+    private static final double ARROW_SIZE = 9.0;
 
-    private Route initialRoute;
+    private Route referenceRoute;
     private Route currentRoute;
-    private boolean showInitialRoute = true;
+    private boolean showReferenceRoute;
+    private Color routeColor = Color.web("#123f91");
     private int generation;
     private int maxGeneration;
+    private boolean showGenerationStatus;
 
     public RouteCanvas() {
-        setWidth(720);
-        setHeight(540);
+        setWidth(620);
+        setHeight(290);
         widthProperty().addListener((observable, oldValue, newValue) -> draw());
         heightProperty().addListener((observable, oldValue, newValue) -> draw());
         draw();
     }
 
-    public void setRoutes(Route initialRoute, Route currentRoute, boolean showInitialRoute, int generation, int maxGeneration) {
-        this.initialRoute = initialRoute;
+    public void setRouteView(
+            Route referenceRoute,
+            Route currentRoute,
+            boolean showReferenceRoute,
+            Color routeColor,
+            int generation,
+            int maxGeneration,
+            boolean showGenerationStatus) {
+        this.referenceRoute = referenceRoute;
         this.currentRoute = currentRoute;
-        this.showInitialRoute = showInitialRoute;
+        this.showReferenceRoute = showReferenceRoute;
+        this.routeColor = routeColor;
         this.generation = generation;
         this.maxGeneration = maxGeneration;
+        this.showGenerationStatus = showGenerationStatus;
         draw();
+    }
+
+    public void setRoutes(Route initialRoute, Route currentRoute, boolean showInitialRoute, int generation, int maxGeneration) {
+        setRouteView(initialRoute, currentRoute, showInitialRoute, Color.web("#123f91"), generation, maxGeneration, true);
     }
 
     @Override
@@ -44,12 +59,12 @@ public final class RouteCanvas extends Canvas {
 
     @Override
     public double prefWidth(double height) {
-        return 720;
+        return 620;
     }
 
     @Override
     public double prefHeight(double width) {
-        return 540;
+        return 290;
     }
 
     private void draw() {
@@ -57,7 +72,7 @@ public final class RouteCanvas extends Canvas {
         double width = getWidth();
         double height = getHeight();
 
-        graphics.setFill(Color.web("#f8fafc"));
+        graphics.setFill(Color.WHITE);
         graphics.fillRect(0, 0, width, height);
         drawGrid(graphics, width, height);
 
@@ -68,30 +83,34 @@ public final class RouteCanvas extends Canvas {
 
         Scale scale = calculateScale(currentRoute.cities(), width, height);
 
-        if (showInitialRoute && initialRoute != null) {
-            drawRoute(graphics, initialRoute, scale, Color.web("#94a3b8"), 1.4, true);
+        if (showReferenceRoute && referenceRoute != null) {
+            drawRoute(graphics, referenceRoute, scale, Color.web("#cbd5e1"), 1.5, true, false);
         }
 
-        drawRoute(graphics, currentRoute, scale, Color.web("#2563eb"), 3.0, false);
+        drawRoute(graphics, currentRoute, scale, routeColor, 2.6, false, true);
         drawCities(graphics, currentRoute.cities(), scale);
-        drawStatus(graphics);
+        drawDistance(graphics, width, height);
+
+        if (showGenerationStatus) {
+            drawGeneration(graphics);
+        }
     }
 
     private void drawGrid(GraphicsContext graphics, double width, double height) {
-        graphics.setStroke(Color.web("#e2e8f0"));
+        graphics.setStroke(Color.web("#eef2f7"));
         graphics.setLineWidth(1.0);
-        for (double x = PADDING; x < width - PADDING / 2; x += 50) {
+        for (double x = PADDING; x < width - PADDING / 2; x += 48) {
             graphics.strokeLine(x, PADDING / 2, x, height - PADDING / 2);
         }
-        for (double y = PADDING; y < height - PADDING / 2; y += 50) {
+        for (double y = PADDING; y < height - PADDING / 2; y += 48) {
             graphics.strokeLine(PADDING / 2, y, width - PADDING / 2, y);
         }
     }
 
     private void drawEmptyState(GraphicsContext graphics, double width, double height) {
-        graphics.setFill(Color.web("#475569"));
-        graphics.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
-        graphics.fillText("Selecione um problema e execute o algoritmo", width / 2 - 185, height / 2);
+        graphics.setFill(Color.web("#64748b"));
+        graphics.setFont(Font.font("Segoe UI", FontWeight.BOLD, 15));
+        graphics.fillText("Execute o algoritmo para visualizar a rota", width / 2 - 150, height / 2);
     }
 
     private Scale calculateScale(List<City> cities, double canvasWidth, double canvasHeight) {
@@ -120,25 +139,46 @@ public final class RouteCanvas extends Canvas {
             Scale scale,
             Color color,
             double lineWidth,
-            boolean dashed) {
+            boolean muted,
+            boolean drawArrows) {
         List<City> ordered = new ArrayList<>(route.orderedCities());
         ordered.add(ordered.get(0));
 
         graphics.save();
         graphics.setStroke(color);
+        graphics.setFill(color);
         graphics.setLineWidth(lineWidth);
-        if (dashed) {
-            graphics.setLineDashes(8);
-        } else {
-            graphics.setLineDashes();
-        }
+        graphics.setGlobalAlpha(muted ? 0.62 : 1.0);
 
         for (int index = 0; index < ordered.size() - 1; index++) {
             Point start = scale.toPoint(ordered.get(index));
             Point end = scale.toPoint(ordered.get(index + 1));
             graphics.strokeLine(start.x, start.y, end.x, end.y);
+            if (drawArrows) {
+                drawArrow(graphics, start, end);
+            }
         }
         graphics.restore();
+    }
+
+    private void drawArrow(GraphicsContext graphics, Point start, Point end) {
+        double angle = Math.atan2(end.y - start.y, end.x - start.x);
+        double arrowX = end.x - Math.cos(angle) * 11.0;
+        double arrowY = end.y - Math.sin(angle) * 11.0;
+        double left = angle - Math.PI / 7.0;
+        double right = angle + Math.PI / 7.0;
+
+        double[] xPoints = {
+                arrowX,
+                arrowX - Math.cos(left) * ARROW_SIZE,
+                arrowX - Math.cos(right) * ARROW_SIZE
+        };
+        double[] yPoints = {
+                arrowY,
+                arrowY - Math.sin(left) * ARROW_SIZE,
+                arrowY - Math.sin(right) * ARROW_SIZE
+        };
+        graphics.fillPolygon(xPoints, yPoints, 3);
     }
 
     private void drawCities(GraphicsContext graphics, List<City> cities, Scale scale) {
@@ -148,26 +188,39 @@ public final class RouteCanvas extends Canvas {
             Point point = scale.toPoint(city);
             boolean start = index == 0;
 
-            graphics.setFill(start ? Color.web("#f97316") : Color.web("#10b981"));
-            graphics.fillOval(point.x - 6, point.y - 6, 12, 12);
-            graphics.setStroke(Color.WHITE);
-            graphics.setLineWidth(2);
-            graphics.strokeOval(point.x - 6, point.y - 6, 12, 12);
+            if (start) {
+                graphics.setFill(Color.web("#2563eb"));
+                graphics.fillRect(point.x - 6, point.y - 6, 12, 12);
+                graphics.setStroke(Color.WHITE);
+                graphics.setLineWidth(2);
+                graphics.strokeRect(point.x - 6, point.y - 6, 12, 12);
+            } else {
+                graphics.setFill(Color.web("#c7c9cc"));
+                graphics.fillOval(point.x - 5, point.y - 5, 10, 10);
+                graphics.setStroke(Color.WHITE);
+                graphics.setLineWidth(1.5);
+                graphics.strokeOval(point.x - 5, point.y - 5, 10, 10);
+            }
 
-            if (cities.size() <= 20 || start) {
-                graphics.setFill(Color.web("#0f172a"));
+            if (cities.size() <= 30 || start) {
+                graphics.setFill(Color.web("#111827"));
                 graphics.fillText(start ? "0" : String.valueOf(index), point.x + 8, point.y - 8);
             }
         }
     }
 
-    private void drawStatus(GraphicsContext graphics) {
-        graphics.setTransform(new Affine());
-        graphics.setFill(Color.web("#0f172a"));
+    private void drawDistance(GraphicsContext graphics, double width, double height) {
+        graphics.setFill(routeColor);
         graphics.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
-        graphics.fillText("Geracao " + generation + " / " + maxGeneration, 18, 28);
-        graphics.setFont(Font.font("Segoe UI", 13));
-        graphics.fillText("Distancia: %.2f".formatted(currentRoute.distance()), 18, 48);
+        String text = "Distância: %.2f km".formatted(currentRoute.distance());
+        double textWidth = graphics.getFont().getSize() * text.length() * 0.48;
+        graphics.fillText(text, Math.max(PADDING, width - textWidth - 24), height - 18);
+    }
+
+    private void drawGeneration(GraphicsContext graphics) {
+        graphics.setFill(Color.web("#475569"));
+        graphics.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12));
+        graphics.fillText("Geração " + generation + " / " + maxGeneration, 16, 24);
     }
 
     private record Scale(double minX, double maxY, double ratio, double offsetX, double offsetY) {

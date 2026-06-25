@@ -1,108 +1,294 @@
 .app-root {
     -fx-font-family: "Segoe UI", Arial, sans-serif;
-    -fx-background-color: #eef2f7;
+    -fx-background-color: #f5f7fb;
 }
 
-.header {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #d8dee9;
-    -fx-border-width: 0 0 1 0;
-    -fx-padding: 16 22 14 22;
+.sidebar {
+    -fx-pref-width: 232px;
+    -fx-background-color: linear-gradient(to bottom, #06275b, #031b44);
+    -fx-padding: 28px 14px 18px 14px;
 }
 
-.title {
-    -fx-font-size: 25px;
+.logo {
+    -fx-padding: 4px 10px 14px 10px;
+}
+
+.logo-icon {
+    -fx-text-fill: #16d5bd;
+    -fx-font-size: 34px;
     -fx-font-weight: 800;
-    -fx-text-fill: #0f172a;
 }
 
-.subtitle {
+.logo-text {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+    -fx-line-spacing: -2px;
+}
+
+.sidebar-controls {
+    -fx-spacing: 12px;
+}
+
+.nav-item,
+.nav-item-active {
+    -fx-background-radius: 7px;
+    -fx-padding: 11px 12px;
+}
+
+.nav-item-active {
+    -fx-background-color: #12c7b0;
+}
+
+.nav-icon,
+.nav-text {
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 800;
+}
+
+.nav-icon {
+    -fx-font-size: 15px;
+}
+
+.nav-text {
     -fx-font-size: 13px;
-    -fx-text-fill: #475569;
-}
-
-.controls-scroll {
-    -fx-background-color: transparent;
-    -fx-border-color: #d8dee9;
-    -fx-border-width: 0 1 0 0;
-}
-
-.controls-scroll > .viewport {
-    -fx-background-color: transparent;
-}
-
-.controls {
-    -fx-pref-width: 260px;
-    -fx-padding: 16px;
-    -fx-background-color: #ffffff;
 }
 
 .field-label {
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
-    -fx-text-fill: #334155;
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #d7e4ff;
 }
 
-.status-label {
-    -fx-text-fill: #475569;
+.sidebar .combo-box,
+.sidebar .spinner,
+.sidebar .text-field {
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-color: rgba(255, 255, 255, 0.18);
+    -fx-background-color: rgba(255, 255, 255, 0.94);
+}
+
+.sidebar .check-box {
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 700;
+}
+
+.sidebar-small-value {
+    -fx-text-fill: #ffffff;
     -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-min-width: 44px;
+}
+
+.slider .track {
+    -fx-background-color: rgba(255, 255, 255, 0.25);
+}
+
+.slider .thumb {
+    -fx-background-color: #13c8b1;
 }
 
 .primary-button {
-    -fx-background-color: #2563eb;
+    -fx-background-color: #12c7b0;
     -fx-text-fill: #ffffff;
     -fx-font-weight: 800;
 }
 
 .button {
-    -fx-background-radius: 6px;
-    -fx-border-radius: 6px;
-    -fx-padding: 8 10 8 10;
+    -fx-background-radius: 7px;
+    -fx-border-radius: 7px;
+    -fx-padding: 9px 12px;
     -fx-cursor: hand;
 }
 
+.sidebar-status-box {
+    -fx-padding: 12px;
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-background-radius: 8px;
+}
+
+.sidebar-status-box .label {
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 800;
+}
+
+.sidebar-status {
+    -fx-text-fill: #b9c8e8;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.dashboard-scroll {
+    -fx-background-color: transparent;
+}
+
+.dashboard-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.dashboard {
+    -fx-padding: 26px 34px 18px 34px;
+    -fx-background-color: #f5f7fb;
+}
+
+.dashboard-title {
+    -fx-font-size: 33px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #0b2a63;
+}
+
+.dashboard-subtitle {
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #7b86a3;
+}
+
+.report-button {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d5dbe8;
+    -fx-border-width: 1px;
+    -fx-text-fill: #078b72;
+    -fx-font-weight: 800;
+    -fx-padding: 11px 18px;
+}
+
+.metric-row,
+.route-row {
+    -fx-alignment: center;
+}
+
+.metric-card,
 .panel {
     -fx-background-color: #ffffff;
-    -fx-border-color: #d8dee9;
+    -fx-border-color: #dbe1eb;
     -fx-border-radius: 8px;
     -fx-background-radius: 8px;
-    -fx-padding: 10px;
+}
+
+.metric-card {
+    -fx-padding: 18px 22px;
+    -fx-min-height: 106px;
+}
+
+.metric-icon {
+    -fx-alignment: center;
+    -fx-content-display: center;
+    -fx-min-width: 58px;
+    -fx-min-height: 58px;
+    -fx-background-radius: 29px;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 25px;
+    -fx-font-weight: 900;
+}
+
+.metric-blue {
+    -fx-background-color: #062e72;
+}
+
+.metric-green {
+    -fx-background-color: #078b5d;
+}
+
+.metric-teal {
+    -fx-background-color: #13c8b1;
+}
+
+.metric-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #111827;
+}
+
+.metric-value {
+    -fx-font-size: 25px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #0b2a63;
+}
+
+.metric-detail {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #7b86a3;
+}
+
+.panel {
+    -fx-padding: 12px 16px 14px 16px;
+}
+
+.panel-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #0b2a63;
+}
+
+.route-title-blue {
+    -fx-text-fill: #123f91;
+}
+
+.route-title-green {
+    -fx-text-fill: #078b5d;
+}
+
+.route-legend {
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #111827;
+}
+
+.canvas-host {
+    -fx-background-color: #ffffff;
 }
 
 .evolution-chart {
     -fx-background-color: transparent;
 }
 
-.chart-plot-background {
-    -fx-background-color: #f8fafc;
+.chart {
+    -fx-padding: 0px;
 }
 
-.chart-series-line {
-    -fx-stroke-width: 2.2px;
+.chart-plot-background {
+    -fx-background-color: #ffffff;
+}
+
+.chart-horizontal-grid-lines,
+.chart-vertical-grid-lines {
+    -fx-stroke: #e4e8ef;
+}
+
+.axis {
+    -fx-tick-label-fill: #667085;
+}
+
+.axis-label {
+    -fx-text-fill: #334155;
 }
 
 .default-color0.chart-series-line {
-    -fx-stroke: #2563eb;
+    -fx-stroke: #13b7a6;
+    -fx-stroke-width: 2.4px;
 }
 
-.default-color1.chart-series-line {
-    -fx-stroke: #f97316;
+.default-color0.chart-line-symbol {
+    -fx-background-color: #13b7a6, #ffffff;
+    -fx-background-radius: 6px;
+    -fx-padding: 4px;
 }
 
-.metrics {
-    -fx-padding: 0 16 16 16;
+.chart-legend {
+    -fx-background-color: transparent;
 }
 
-.metric-box {
+.footer {
     -fx-background-color: #ffffff;
-    -fx-border-color: #d8dee9;
-    -fx-border-radius: 8px;
-    -fx-background-radius: 8px;
-    -fx-padding: 10px 12px;
+    -fx-border-color: #dbe1eb;
+    -fx-border-width: 1px 0 0 0;
+    -fx-padding: 12px 22px;
 }
 
-.metric-label {
-    -fx-text-fill: #0f172a;
+.footer-item {
     -fx-font-size: 12px;
     -fx-font-weight: 700;
+    -fx-text-fill: #587094;
 }
